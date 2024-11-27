@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>弾くパラメーター選択</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #007BFF;
+            margin: 40px 0;
+            font-size: 30px;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background-color: #fafafa;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #007BFF;
+            text-align: center;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            font-size: 16px;
+        }
+        #audioPlayers {
+            display: none;
+            margin-top: 30px;
+        }
+        .audio-option, .background-audio {
+            margin-top: 20px;
+        }
+        audio {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        .button-container button {
+            width: 30%;
+        }
+    </style>
+</head>
+<body>
+    <h1>弾くパラメーターを選んでください</h1>
+    <div class="container">
+        <div class="form-group">
+            <label for="location">弾く場所:</label>
+            <select id="location">
+                <option value="">--選択してください--</option>
+                <option value="フロント上">フロント上</option>
+                <option value="フロント＆リア間">フロント＆リア間</option>
+                <option value="リア上">リア上</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="direction">弾く向き:</label>
+            <select id="direction">
+                <option value="">--選択してください--</option>
+                <option value="斜め">斜め</option>
+                <option value="横">横</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="strength">弾く強さ:</label>
+            <select id="strength">
+                <option value="">--選択してください--</option>
+                <option value="強い">強い</option>
+                <option value="普通">普通</option>
+                <option value="弱い">弱い</option>
+            </select>
+        </div>
+
+        <button id="playAudioBtn">選択の確定</button>
+
+        <div id="result"></div>
+        <div class="error" id="errorMsg"></div>
+        
+        <div id="audioPlayers">
+            <h2>選択した音</h2>
+            <div class="audio-option" id="audioOption"></div>
+            <h3>背景音楽</h3>
+            <div class="background-audio" id="backgroundAudio"></div>
+        </div>
+
+        <div class="button-container">
+            <button id="playBalladBtn">Ballad再生</button>
+            <button id="playPopsBtn">Pops再生</button>
+            <button id="playRockBtn">Rock再生</button>
+        </div>
+
+        <!-- すべて停止ボタン -->
+        <button id="stopAllAudioBtn">すべての再生を停止</button>
+    </div>
+    
+    <script>
+        const audioFileMap = {
+            'フロント上': {
+                '斜め': {
+                    '強い': 'F/1_F_D_S.wav',
+                    '普通': 'F/1_F_D_N.wav',
+                    '弱い': 'F/1_F_D_W.wav'
+                },
+                '横': {
+                    '強い': 'F/1_F_H_S.wav',
+                    '普通': 'F/1_F_H_N.wav',
+                    '弱い': 'F/1_F_H_W.wav'
+                }
+            },
+            'フロント＆リア間': {
+                '斜め': {
+                    '強い': 'FR/1_FR_D_S.wav',
+                    '普通': 'FR/1_FR_D_N.wav',
+                    '弱い': 'FR/1_FR_D_W.wav'
+                },
+                '横': {
+                    '強い': 'FR/1_FR_H_S.wav',
+                    '普通': 'FR/1_FR_H_N.wav',
+                    '弱い': 'FR/1_FR_H_W.wav'
+                }
+            },
+            'リア上': {
+                '斜め': {
+                    '強い': 'R/1_R_D_S.wav',
+                    '普通': 'R/1_R_D_N.wav',
+                    '弱い': 'R/1_R_D_W.wav'
+                },
+                '横': {
+                    '強い': 'R/1_R_H_S.wav',
+                    '普通': 'R/1_R_H_N.wav',
+                    '弱い': 'R/1_R_H_W.wav'
+                }
+            }
+        };
+
+        const audioFileMap2 = {
+            'フロント上': {
+                '斜め': {
+                    '強い': 'F/2_F_D_S.wav',
+                    '普通': 'F/2_F_D_N.wav',
+                    '弱い': 'F/2_F_D_W.wav'
+                },
+                '横': {
+                    '強い': 'F/2_F_H_S.wav',
+                    '普通': 'F/2_F_H_N.wav',
+                    '弱い': 'F/2_F_H_W.wav'
+                }
+            },
+            'フロント＆リア間': {
+                '斜め': {
+                    '強い': 'FR/2_FR_D_S.wav',
+                    '普通': 'FR/2_FR_D_N.wav',
+                    '弱い': 'FR/2_FR_D_W.wav'
+                },
+                '横': {
+                    '強い': 'FR/2_FR_H_S.wav',
+                    '普通': 'FR/2_FR_H_N.wav',
+                    '弱い': 'FR/2_FR_H_W.wav'
+                }
+            },
+            'リア上': {
+                '斜め': {
+                    '強い': 'R/2_R_D_S.wav',
+                    '普通': 'R/2_R_D_N.wav',
+                    '弱い': 'R/2_R_D_W.wav'
+                },
+                '横': {
+                    '強い': 'R/2_R_H_S.wav',
+                    '普通': 'R/2_R_H_N.wav',
+                    '弱い': 'R/2_R_H_W.wav'
+                }
+            }
+        };
+
+        const backgroundFiles = {
+            'Ballad': 'Genre/Ballad_卒研.wav',
+            'Pops': 'Genre/Pops_卒研.wav',
+            'Rock': 'Genre/Rock_卒研.wav'
+        };
+
+        let audioElements = []; // 再生中のオーディオ要素を格納する配列
+
+        const playAudioBtn = document.getElementById('playAudioBtn');
+        const resultText = document.getElementById('result');
+        const audioOption = document.getElementById('audioOption');
+        const errorMsg = document.getElementById('errorMsg');
+        const audioPlayers = document.getElementById('audioPlayers');
+        const stopAllAudioBtn = document.getElementById('stopAllAudioBtn');
+
+        playAudioBtn.addEventListener('click', () => {
+            const location = document.getElementById('location').value;
+            const direction = document.getElementById('direction').value;
+            const strength = document.getElementById('strength').value;
+
+            if (location && direction && strength) {
+                const selectedAudio = audioFileMap[location][direction][strength];
+                const selectedAudio2 = audioFileMap2[location][direction][strength];
+
+                resultText.innerHTML = `選択した結果: 弾く場所は${location}、弾く向きは${direction}、弾く強さは${strength}です。`;
+
+                audioOption.innerHTML = `
+                    <label>選択した音 1:</label>
+                    <audio controls id="selectedAudio">
+                        <source src="${selectedAudio}" type="audio/wav">
+                        あなたのブラウザはaudioタグに対応していません。
+                    </audio>
+                    <label>選択した音 2:</label>
+                    <audio controls id="selectedAudio2">
+                        <source src="${selectedAudio2}" type="audio/wav">
+                        あなたのブラウザはaudioタグに対応していません。
+                    </audio>
+                `;
+                audioPlayers.style.display = 'block';
+
+                // 再生ボタンの処理
+                document.getElementById('playBalladBtn').onclick = () => playBackground('Ballad', selectedAudio2, true);
+                document.getElementById('playPopsBtn').onclick = () => playBackground('Pops', selectedAudio, false);
+                document.getElementById('playRockBtn').onclick = () => playBackground('Rock', selectedAudio, false);
+
+                // オーディオ要素を配列に格納
+                audioElements = [document.getElementById('selectedAudio'), document.getElementById('selectedAudio2')];
+            } else {
+                errorMsg.textContent = 'すべての選択肢を選んでください。';
+            }
+        });
+
+        // すべてのオーディオを停止する関数
+        stopAllAudioBtn.addEventListener('click', () => {
+            audioElements.forEach(audio => {
+                audio.pause();
+                audio.currentTime = 0;
+            });
+
+            const backgroundAudio = document.getElementById('bgAudio');
+            if (backgroundAudio) {
+                backgroundAudio.pause();
+                backgroundAudio.currentTime = 0;
+            }
+        });
+
+        function playBackground(selectedBackground, selectedAudio, isBallad) {
+            const backgroundAudio = document.getElementById('backgroundAudio');
+            const selectedBackgroundAudio = backgroundFiles[selectedBackground];
+
+            backgroundAudio.innerHTML = `
+                <label>選択した背景音楽:</label>
+                <audio controls id="bgAudio">
+                    <source src="${selectedBackgroundAudio}" type="audio/wav">
+                    あなたのブラウザはaudioタグに対応していません。
+                </audio>
+            `;
+            const selectedAudioElement = document.getElementById('selectedAudio');
+            const selectedAudio2Element = document.getElementById('selectedAudio2');
+            const backgroundAudioElement = document.getElementById('bgAudio');
+
+            selectedAudioElement.currentTime = 0;
+            selectedAudio2Element.currentTime = 0;
+            backgroundAudioElement.currentTime = 0;
+
+            if (isBallad) {
+                selectedAudioElement.pause();
+                selectedAudio2Element.play();
+            } else {
+                selectedAudio2Element.pause();
+                selectedAudioElement.play();
+            }
+
+            backgroundAudioElement.play();
+        }
+    </script>
+</body>
+</html>
